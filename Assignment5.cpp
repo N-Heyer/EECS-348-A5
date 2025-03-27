@@ -22,27 +22,25 @@ struct Email {
     string sender_category;
     string subject;
     string date;
-    int arrival_order;
-    int priority_value;  
+    int priority_value;
 
-    Email(string sender, string subj, string dt, int order) 
-        : sender_category(sender), subject(subj), date(dt), arrival_order(order) {
-        
+    Email(string sender, string subj, string dt) 
+        : sender_category(sender), subject(subj), date(dt) {
         unordered_map<string, int>& PRIORITY_MAP = getPriorityMap();
-        int category_priority = PRIORITY_MAP[sender];  // Get the priority from the map
-        priority_value = (category_priority * 10000) + (10000 - arrival_order);  
+        int category_priority = PRIORITY_MAP[sender];  // Get sender priority
+        priority_value = category_priority; // Priority base value
     }
 };
 
-// **Fixed Sorting Function**
+// **Sorting Function - Higher Priority & Newest Date First**
 bool compareEmails(const Email &a, const Email &b) {
-    return a.priority_value > b.priority_value; // Higher priority value first
+    if (a.priority_value != b.priority_value)
+        return a.priority_value > b.priority_value; // Higher category first
+    return a.date > b.date; // Newest date first (YYYY-MM-DD sorting works lexicographically)
 }
 
 int main() {
     vector<Email> emailQueue;
-    int arrival_counter = 1;
-
     string file_name;
     cout << "Enter the file name containing emails and commands: ";
     cin >> file_name;
@@ -67,13 +65,15 @@ int main() {
             
             stringstream ss(email_data);
             string sender, subject, date;
-
+            
             if (!getline(ss, sender, ',') || !getline(ss, subject, ',') || !getline(ss, date, ',')) {
                 cout << "\nInvalid EMAIL format: " << line << "\n";
                 continue;
             }
 
-            emailQueue.emplace_back(sender, subject, date, arrival_counter++);
+            // Convert date to YYYYMMDD format for correct sorting
+            string formatted_date = date.substr(6,4) + date.substr(0,2) + date.substr(3,2);
+            emailQueue.emplace_back(sender, subject, formatted_date);
             sort(emailQueue.begin(), emailQueue.end(), compareEmails);
         } 
         else if (command == "COUNT") {
@@ -85,7 +85,7 @@ int main() {
                 cout << "\nNext email:\n"
                      << "Sender: " << next_email.sender_category << "\n"
                      << "Subject: " << next_email.subject << "\n"
-                     << "Date: " << next_email.date << "\n";
+                     << "Date: " << next_email.date.substr(4,2) << "-" << next_email.date.substr(6,2) << "-" << next_email.date.substr(0,4) << "\n";
             } else {
                 cout << "\nNo emails waiting.\n";
             }
@@ -101,6 +101,5 @@ int main() {
             cout << "\nInvalid command found in file: " << line << "\n";
         }
     }
-
     return 0;
 }
