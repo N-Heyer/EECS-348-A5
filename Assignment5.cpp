@@ -23,18 +23,20 @@ struct Email {
     string subject;
     string date;
     int arrival_order;
-    pair<int, int> priority;  // (Category priority, Negative arrival order)
+    int priority_value;  
 
     Email(string sender, string subj, string dt, int order) 
         : sender_category(sender), subject(subj), date(dt), arrival_order(order) {
+        
         unordered_map<string, int>& PRIORITY_MAP = getPriorityMap();
-        priority = {PRIORITY_MAP[sender], -arrival_order};  // Negative arrival order ensures newer emails come first
+        int category_priority = PRIORITY_MAP[sender];  // Get the priority from the map
+        priority_value = (category_priority * 10000) + (10000 - arrival_order);  
     }
 };
 
 // **Fixed Sorting Function**
 bool compareEmails(const Email &a, const Email &b) {
-    return a.priority > b.priority; // Higher priority first
+    return a.priority_value > b.priority_value; // Higher priority value first
 }
 
 int main() {
