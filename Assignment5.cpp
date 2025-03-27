@@ -27,16 +27,19 @@ struct Email {
     Email(string sender, string subj, string dt) 
         : sender_category(sender), subject(subj), date(dt) {
         unordered_map<string, int>& PRIORITY_MAP = getPriorityMap();
-        int category_priority = PRIORITY_MAP[sender];  // Get sender priority
-        priority_value = category_priority; // Priority base value
+        priority_value = PRIORITY_MAP[sender]; // Assign sender priority
     }
 };
 
-// **Sorting Function - Higher Priority & Newest Date First**
+// **Sorting Function - Ensures correct prioritization**
 bool compareEmails(const Email &a, const Email &b) {
-    if (a.priority_value != b.priority_value)
-        return a.priority_value > b.priority_value; // Higher category first
-    return a.date > b.date; // Newest date first (YYYY-MM-DD sorting works lexicographically)
+    unordered_map<string, int>& PRIORITY_MAP = Email::getPriorityMap();
+    int priorityA = PRIORITY_MAP[a.sender_category];
+    int priorityB = PRIORITY_MAP[b.sender_category];
+    
+    if (priorityA != priorityB)
+        return priorityA > priorityB; // Higher category first
+    return a.date > b.date; // Newest date first
 }
 
 int main() {
@@ -83,9 +86,9 @@ int main() {
             if (!emailQueue.empty()) {
                 const Email &next_email = emailQueue.front();
                 cout << "\nNext email:\n"
-                     << "Sender: " << next_email.sender_category << "\n"
-                     << "Subject: " << next_email.subject << "\n"
-                     << "Date: " << next_email.date.substr(4,2) << "-" << next_email.date.substr(6,2) << "-" << next_email.date.substr(0,4) << "\n";
+                     << "\tSender: " << next_email.sender_category << "\n"
+                     << "\tSubject: " << next_email.subject << "\n"
+                     << "\tDate: " << next_email.date.substr(4,2) << "-" << next_email.date.substr(6,2) << "-" << next_email.date.substr(0,4) << "\n";
             } else {
                 cout << "\nNo emails waiting.\n";
             }
