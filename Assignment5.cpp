@@ -8,32 +8,33 @@
 using namespace std;
 
 struct Email {
-    static unordered_map<string, int> PRIORITY_MAP;
-    
+    static unordered_map<string, int>& getPriorityMap() {
+        static unordered_map<string, int> PRIORITY_MAP = {
+            {"Boss", 5},
+            {"Subordinate", 4},
+            {"Peer", 3},
+            {"ImportantPerson", 2},
+            {"OtherPerson", 1}
+        };
+        return PRIORITY_MAP;
+    }
+
     string sender_category;
     string subject;
     string date;
     int arrival_order;
-    int priority;
+    pair<int, int> priority;  // (Category priority, Negative arrival order)
 
     Email(string sender, string subj, string dt, int order) 
         : sender_category(sender), subject(subj), date(dt), arrival_order(order) {
-        priority = (PRIORITY_MAP.count(sender) ? PRIORITY_MAP[sender] : 0) * 10000 - arrival_order;
+        unordered_map<string, int>& PRIORITY_MAP = getPriorityMap();
+        priority = {PRIORITY_MAP[sender], -arrival_order};  // Negative arrival order ensures newer emails come first
     }
 };
 
-// Define priority mapping
-unordered_map<string, int> Email::PRIORITY_MAP = {
-    {"Boss", 5},
-    {"Subordinate", 4},
-    {"Peer", 3},
-    {"ImportantPerson", 2},
-    {"OtherPerson", 1}
-};
-
-// Comparator for sorting emails by priority
+// **Fixed Sorting Function**
 bool compareEmails(const Email &a, const Email &b) {
-    return a.priority > b.priority;  // Higher priority emails first
+    return a.priority > b.priority; // Higher priority first
 }
 
 int main() {
@@ -80,16 +81,16 @@ int main() {
             if (!emailQueue.empty()) {
                 const Email &next_email = emailQueue.front();
                 cout << "\nNext email:\n"
-                     << "\tSender: " << next_email.sender_category << "\n"
-                     << "\tSubject: " << next_email.subject << "\n"
-                     << "\tDate: " << next_email.date << "\n";
+                     << "Sender: " << next_email.sender_category << "\n"
+                     << "Subject: " << next_email.subject << "\n"
+                     << "Date: " << next_email.date << "\n";
             } else {
                 cout << "\nNo emails waiting.\n";
             }
         } 
         else if (command == "READ") {
             if (!emailQueue.empty()) {
-                emailQueue.erase(emailQueue.begin());  // Remove highest priority email
+                emailQueue.erase(emailQueue.begin());
             } else {
                 cout << "\nNo emails to read.\n";
             }
