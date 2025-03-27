@@ -23,11 +23,15 @@ struct Email {
     string subject;
     string date;
     int priority_value;
+    int numeric_date; // Stores the date as an integer for sorting
 
     Email(string sender, string subj, string dt) 
         : sender_category(sender), subject(subj), date(dt) {
         unordered_map<string, int>& PRIORITY_MAP = getPriorityMap();
-        priority_value = PRIORITY_MAP[sender]; // Assign sender priority
+        priority_value = PRIORITY_MAP[sender];
+
+        // Convert date format from MM-DD-YYYY to an integer YYYYMMDD
+        numeric_date = stoi(dt.substr(6, 4) + dt.substr(0, 2) + dt.substr(3, 2));
     }
 };
 
@@ -39,7 +43,8 @@ bool compareEmails(const Email &a, const Email &b) {
     
     if (priorityA != priorityB)
         return priorityA > priorityB; // Higher category first
-    return a.date > b.date; // Newest date first
+    
+    return a.numeric_date > b.numeric_date; // Newest date first
 }
 
 int main() {
@@ -74,9 +79,7 @@ int main() {
                 continue;
             }
 
-            // Convert date to YYYYMMDD format for correct sorting
-            string formatted_date = date.substr(6,4) + date.substr(0,2) + date.substr(3,2);
-            emailQueue.emplace_back(sender, subject, formatted_date);
+            emailQueue.emplace_back(sender, subject, date);
             sort(emailQueue.begin(), emailQueue.end(), compareEmails);
         } 
         else if (command == "COUNT") {
@@ -88,7 +91,7 @@ int main() {
                 cout << "\nNext email:\n"
                      << "\tSender: " << next_email.sender_category << "\n"
                      << "\tSubject: " << next_email.subject << "\n"
-                     << "\tDate: " << next_email.date.substr(4,2) << "-" << next_email.date.substr(6,2) << "-" << next_email.date.substr(0,4) << "\n";
+                     << "\tDate: " << next_email.date << "\n";
             } else {
                 cout << "\nNo emails waiting.\n";
             }
