@@ -8,8 +8,8 @@
 using namespace std;
 
 struct Email {
-    static unordered_map<string, int> PRIORITY_MAP; // Only declare here
-
+    static unordered_map<string, int> PRIORITY_MAP;
+    
     string sender_category;
     string subject;
     string date;
@@ -18,22 +18,22 @@ struct Email {
 
     Email(string sender, string subj, string dt, int order) 
         : sender_category(sender), subject(subj), date(dt), arrival_order(order) {
-        priority = (PRIORITY_MAP[sender] * 10000) - arrival_order;
+        priority = (PRIORITY_MAP.count(sender) ? PRIORITY_MAP[sender] : 0) * 10000 - arrival_order;
     }
 };
 
-// **Move the definition outside the struct**
+// Define priority mapping
 unordered_map<string, int> Email::PRIORITY_MAP = {
-    make_pair("Boss", 5),
-    make_pair("Subordinate", 4),
-    make_pair("Peer", 3),
-    make_pair("ImportantPerson", 2),
-    make_pair("OtherPerson", 1)
+    {"Boss", 5},
+    {"Subordinate", 4},
+    {"Peer", 3},
+    {"ImportantPerson", 2},
+    {"OtherPerson", 1}
 };
 
-// Comparator function for sorting emails
+// Comparator for sorting emails by priority
 bool compareEmails(const Email &a, const Email &b) {
-    return a.priority > b.priority;
+    return a.priority > b.priority;  // Higher priority emails first
 }
 
 int main() {
@@ -89,7 +89,7 @@ int main() {
         } 
         else if (command == "READ") {
             if (!emailQueue.empty()) {
-                emailQueue.erase(emailQueue.begin());
+                emailQueue.erase(emailQueue.begin());  // Remove highest priority email
             } else {
                 cout << "\nNo emails to read.\n";
             }
