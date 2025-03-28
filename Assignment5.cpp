@@ -12,10 +12,12 @@ struct Email {
     string subject;
     string date;
     int priority_value;
-    int numeric_date; // Stores the date as an integer for sorting
+    int numeric_date;
 
     Email(string sender, string subj, string dt) 
         : sender_category(sender), subject(subj), date(dt) {
+        
+        // Assign priority values
         static unordered_map<string, int> PRIORITY_MAP = {
             {"Boss", 5},
             {"Subordinate", 4},
@@ -25,22 +27,23 @@ struct Email {
         };
         priority_value = PRIORITY_MAP[sender];
 
-        // Convert date format from MM-DD-YYYY to an integer YYYYMMDD
+        // Convert date format MM-DD-YYYY to YYYYMMDD as an integer for sorting
         numeric_date = stoi(dt.substr(6, 4) + dt.substr(0, 2) + dt.substr(3, 2));
     }
 };
 
-// **Comparator for priority queue (higher priority first, then latest date first)**
+// **Custom Comparator for Priority Queue**
 struct CompareEmails {
     bool operator()(const Email& a, const Email& b) {
         if (a.priority_value != b.priority_value)
             return a.priority_value < b.priority_value; // Higher priority first
-        return a.numeric_date < b.numeric_date; // Newest date first
+        return a.numeric_date < b.numeric_date; // Newer emails first
     }
 };
 
 int main() {
     priority_queue<Email, vector<Email>, CompareEmails> emailQueue;
+    
     string file_name;
     cout << "Enter the file name containing emails and commands: ";
     cin >> file_name;
@@ -60,17 +63,22 @@ int main() {
         iss >> command;
         
         if (command == "EMAIL") {
-            string email_data;
-            getline(iss, email_data);
-            
-            stringstream ss(email_data);
             string sender, subject, date;
-            
-            if (!getline(ss, sender, ',') || !getline(ss, subject, ',') || !getline(ss, date, ',')) {
-                cout << "\nInvalid EMAIL format: " << line << "\n";
-                continue;
-            }
+            char comma; // To handle commas correctly
 
+            // Read sender category
+            iss >> ws;
+            getline(iss, sender, ',');
+
+            // Read subject
+            iss >> ws;
+            getline(iss, subject, ',');
+
+            // Read date
+            iss >> ws;
+            getline(iss, date, ',');
+
+            // Insert email into priority queue
             emailQueue.emplace(sender, subject, date);
         } 
         else if (command == "COUNT") {
@@ -78,7 +86,7 @@ int main() {
         } 
         else if (command == "NEXT") {
             if (!emailQueue.empty()) {
-                const Email &next_email = emailQueue.top();
+                const Email& next_email = emailQueue.top();
                 cout << "\nNext email:\n"
                      << "Sender: " << next_email.sender_category << "\n"
                      << "Subject: " << next_email.subject << "\n"
@@ -89,7 +97,7 @@ int main() {
         } 
         else if (command == "READ") {
             if (!emailQueue.empty()) {
-                emailQueue.pop();  // Remove the top email
+                emailQueue.pop(); // Remove the highest priority email
             } else {
                 cout << "\nNo emails to read.\n";
             }
