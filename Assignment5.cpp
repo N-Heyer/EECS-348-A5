@@ -7,17 +7,18 @@
 
 using namespace std;
 
+//struct to store the email with sender cat, subj, date, prior, and date
 struct Email {
-    string sender_category;
-    string subject;
-    string date;
-    int priority_value;
-    int numeric_date;
+    string sender_category;  // cat like boss, sub, important
+    string subject;          //email subj
+    string date;             // date string
+    int priority_value;      //numeric priority
+    int numeric_date;        //date conversion
 
+    //init email object
     Email(string sender, string subj, string dt) 
         : sender_category(sender), subject(subj), date(dt) {
-        
-        // Assign priority values
+        //map to assign prior to email based on sender cat
         static unordered_map<string, int> PRIORITY_MAP = {
             {"Boss", 5},
             {"Subordinate", 4},
@@ -25,23 +26,25 @@ struct Email {
             {"ImportantPerson", 2},
             {"OtherPerson", 1}
         };
-        priority_value = PRIORITY_MAP[sender];
+        priority_value = PRIORITY_MAP[sender]; //priority based on sender
 
-        // Convert date format MM-DD-YYYY to YYYYMMDD as an integer for sorting
+        //convert date for ease
         numeric_date = stoi(dt.substr(6, 4) + dt.substr(0, 2) + dt.substr(3, 2));
     }
 };
 
-// **Custom Comparator for Priority Queue**
+//comparing for prior Q
+//emails sorted by sender then date
 struct CompareEmails {
     bool operator()(const Email& a, const Email& b) {
         if (a.priority_value != b.priority_value)
-            return a.priority_value < b.priority_value; // Higher priority first
-        return a.numeric_date < b.numeric_date; // Newer emails first
+            return a.priority_value < b.priority_value; //highest prior first
+        return a.numeric_date < b.numeric_date; //if same date first
     }
 };
 
 int main() {
+    // store emails with top prior at top
     priority_queue<Email, vector<Email>, CompareEmails> emailQueue;
     
     string file_name;
@@ -56,36 +59,37 @@ int main() {
 
     string line;
     while (getline(file, line)) {
-        if (line.empty()) continue;
+        if (line.empty()) continue; //skip empty line
 
         istringstream iss(line);
         string command;
-        iss >> command;
-        
+        iss >> command; //reads commands like read, next
+
         if (command == "EMAIL") {
             string sender, subject, date;
-            char comma; // To handle commas correctly
 
-            // Read sender category
+            //read sender cat
             iss >> ws;
             getline(iss, sender, ',');
 
-            // Read subject
+            //read subj
             iss >> ws;
             getline(iss, subject, ',');
 
-            // Read date
+            //read date
             iss >> ws;
             getline(iss, date, ',');
 
-            // Insert email into priority queue
+            //add new email to Q
             emailQueue.emplace(sender, subject, date);
         } 
         else if (command == "COUNT") {
+            //dsiplay unread emails
             cout << "\nThere are " << emailQueue.size() << " emails to read.\n";
         } 
         else if (command == "NEXT") {
             if (!emailQueue.empty()) {
+                //get highest priopr without removal
                 const Email& next_email = emailQueue.top();
                 cout << "\nNext email:\n"
                      << "Sender: " << next_email.sender_category << "\n"
@@ -97,12 +101,14 @@ int main() {
         } 
         else if (command == "READ") {
             if (!emailQueue.empty()) {
-                emailQueue.pop(); // Remove the highest priority email
+                //remove highest prior from Q
+                emailQueue.pop();
             } else {
                 cout << "\nNo emails to read.\n";
             }
         } 
         else {
+            //only handle valid commands
             cout << "\nInvalid command found in file: " << line << "\n";
         }
     }
