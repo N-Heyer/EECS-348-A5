@@ -8,17 +8,6 @@
 using namespace std;
 
 struct Email {
-    static unordered_map<string, int>& getPriorityMap() {
-        static unordered_map<string, int> PRIORITY_MAP = {
-            {"Boss", 5},
-            {"Subordinate", 4},
-            {"Peer", 3},
-            {"ImportantPerson", 2},
-            {"OtherPerson", 1}
-        };
-        return PRIORITY_MAP;
-    }
-
     string sender_category;
     string subject;
     string date;
@@ -27,7 +16,13 @@ struct Email {
 
     Email(string sender, string subj, string dt) 
         : sender_category(sender), subject(subj), date(dt) {
-        unordered_map<string, int>& PRIORITY_MAP = getPriorityMap();
+        static unordered_map<string, int> PRIORITY_MAP = {
+            {"Boss", 5},
+            {"Subordinate", 4},
+            {"Peer", 3},
+            {"ImportantPerson", 2},
+            {"OtherPerson", 1}
+        };
         priority_value = PRIORITY_MAP[sender];
 
         // Convert date format from MM-DD-YYYY to an integer YYYYMMDD
@@ -37,13 +32,8 @@ struct Email {
 
 // **Sorting Function - Ensures correct prioritization**
 bool compareEmails(const Email &a, const Email &b) {
-    unordered_map<string, int>& PRIORITY_MAP = Email::getPriorityMap();
-    int priorityA = PRIORITY_MAP[a.sender_category];
-    int priorityB = PRIORITY_MAP[b.sender_category];
-    
-    if (priorityA != priorityB)
-        return priorityA > priorityB; // Higher category first
-    
+    if (a.priority_value != b.priority_value)
+        return a.priority_value > b.priority_value; // Higher priority first
     return a.numeric_date > b.numeric_date; // Newest date first
 }
 
@@ -80,7 +70,7 @@ int main() {
             }
 
             emailQueue.emplace_back(sender, subject, date);
-            sort(emailQueue.begin(), emailQueue.end(), compareEmails);
+            sort(emailQueue.begin(), emailQueue.end(), compareEmails); // Keep queue sorted
         } 
         else if (command == "COUNT") {
             cout << "\nThere are " << emailQueue.size() << " emails to read.\n";
@@ -89,16 +79,16 @@ int main() {
             if (!emailQueue.empty()) {
                 const Email &next_email = emailQueue.front();
                 cout << "\nNext email:\n"
-                     << "\tSender: " << next_email.sender_category << "\n"
-                     << "\tSubject: " << next_email.subject << "\n"
-                     << "\tDate: " << next_email.date << "\n";
+                     << "Sender: " << next_email.sender_category << "\n"
+                     << "Subject: " << next_email.subject << "\n"
+                     << "Date: " << next_email.date << "\n";
             } else {
                 cout << "\nNo emails waiting.\n";
             }
         } 
         else if (command == "READ") {
             if (!emailQueue.empty()) {
-                emailQueue.erase(emailQueue.begin());
+                emailQueue.erase(emailQueue.begin());  // Remove the top email
             } else {
                 cout << "\nNo emails to read.\n";
             }
