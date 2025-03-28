@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <algorithm>
+#include <queue>
 #include <unordered_map>
 
 using namespace std;
@@ -30,15 +30,17 @@ struct Email {
     }
 };
 
-// **Sorting Function - Ensures correct prioritization**
-bool compareEmails(const Email &a, const Email &b) {
-    if (a.priority_value != b.priority_value)
-        return a.priority_value > b.priority_value; // Higher priority first
-    return a.numeric_date > b.numeric_date; // Newest date first
-}
+// **Comparator for priority queue (higher priority first, then latest date first)**
+struct CompareEmails {
+    bool operator()(const Email& a, const Email& b) {
+        if (a.priority_value != b.priority_value)
+            return a.priority_value < b.priority_value; // Higher priority first
+        return a.numeric_date < b.numeric_date; // Newest date first
+    }
+};
 
 int main() {
-    vector<Email> emailQueue;
+    priority_queue<Email, vector<Email>, CompareEmails> emailQueue;
     string file_name;
     cout << "Enter the file name containing emails and commands: ";
     cin >> file_name;
@@ -69,15 +71,14 @@ int main() {
                 continue;
             }
 
-            emailQueue.emplace_back(sender, subject, date);
-            sort(emailQueue.begin(), emailQueue.end(), compareEmails); // Keep queue sorted
+            emailQueue.emplace(sender, subject, date);
         } 
         else if (command == "COUNT") {
             cout << "\nThere are " << emailQueue.size() << " emails to read.\n";
         } 
         else if (command == "NEXT") {
             if (!emailQueue.empty()) {
-                const Email &next_email = emailQueue.front();
+                const Email &next_email = emailQueue.top();
                 cout << "\nNext email:\n"
                      << "Sender: " << next_email.sender_category << "\n"
                      << "Subject: " << next_email.subject << "\n"
@@ -88,7 +89,7 @@ int main() {
         } 
         else if (command == "READ") {
             if (!emailQueue.empty()) {
-                emailQueue.erase(emailQueue.begin());  // Remove the top email
+                emailQueue.pop();  // Remove the top email
             } else {
                 cout << "\nNo emails to read.\n";
             }
